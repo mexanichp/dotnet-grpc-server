@@ -1,0 +1,63 @@
+version: '2.4'
+
+services:
+  healthyplant.data:
+    container_name: data
+    image: mongo:4.4.1-bionic
+    restart: always
+    ports:
+    - "27017:27017"
+    volumes:
+    - "$MONGO_VOLUME_HOSTPATH/db:/data/db"
+    - "$MONGO_VOLUME_HOSTPATH/configdb:/data/configdb"
+    env_file:
+    - .env
+    cpu_count: 1
+    mem_limit: 1g
+    memswap_limit: 3g
+    healthcheck:
+      test: exit 0
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+    - plantorica
+
+  healthyplant.logging:
+    image: datalust/seq:latest
+    container_name: seq
+    env_file:
+    - .env
+    environment:
+    - ACCEPT_EULA=Y
+    volumes:
+    - "$SEQ_VOLUME_HOSTPATH/data:/data"
+    cpu_count: 1
+    mem_limit: 384m
+    memswap_limit: 384m
+    networks:
+    - plantorica
+
+  healthyplant.proxy:
+    image: nginx:1.19.8
+    container_name: proxy
+    ports:
+    - 7706:7706
+    - 7707:7707
+    volumes:
+    - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+    - ./config/.nginx/logs:/etc/nginx/logs
+    - "$SSL_CRT_PATH/privkey.pem:/run/secrets/privkey.pem:ro"
+    - "$SSL_KEY_PATH/fullchain.pem:/run/secrets/fullchain.pem:ro"
+    networks:
+    - plantorica
+
+networks:
+  plantorica:
+    driver: bridge
+
+#volumes:
+#  mongo_db:
+#  mongo_cfg:
+#  seq_db:

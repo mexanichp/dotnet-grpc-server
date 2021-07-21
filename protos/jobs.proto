@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option csharp_namespace = "HealthyPlant.Grpc";
+
+package plants_jobs;
+
+service PlantsJobs {
+	rpc NotifyPlantAction (NotifyRequest) returns (NotifyResponse);
+}
+
+message NotifyRequest {}
+
+message NotifyResponse {}

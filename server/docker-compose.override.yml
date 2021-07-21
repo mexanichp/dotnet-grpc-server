@@ -1,0 +1,52 @@
+version: '2.4'
+
+services:
+  healthyplant.grpc:
+    container_name: server
+    image: ${DOCKER_REGISTRY-}healthyplantgrpc
+    restart: always
+    build:
+      context: ../
+      dockerfile: server/HealthyPlant.Grpc/Dockerfile
+    environment:
+    - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+    - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      healthyplant.data:
+        condition: service_healthy
+      healthyplant.logging:
+        condition: service_started
+    env_file:
+    - .env
+    cpu_count: 1
+    mem_limit: 1g
+    memswap_limit: 3g
+    cpuset: "0"
+    cpus: .75
+    expose:
+    - 8080
+    networks:
+    - plantorica
+
+  healthyplant.data.test:
+    container_name: data-test
+    image: mongo:4.4.1-bionic
+    ports:
+    - "27018:27017"
+    cpu_count: 1
+    mem_limit: 512m
+    memswap_limit: 512m
+    networks:
+    - plantorica
+
+  healthyplant.proxy:
+    ports:
+    - 7706:7706
+    - 1443:1443
+    depends_on:
+    - healthyplant.grpc
+    volumes:
+    - ./config/dev.nginx.conf:/etc/nginx/nginx.conf:ro
+    - ./config/.nginx/logs:/etc/nginx/logs
+    - "$SSL_CRT_PATH/dev.plantorica.com.crt:/run/secrets/dev.plantorica.com.crt:ro"
+    - "$SSL_KEY_PATH/dev.plantorica.com.key:/run/secrets/dev.plantorica.com.key:ro"

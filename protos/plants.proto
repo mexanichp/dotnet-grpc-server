@@ -1,0 +1,177 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/field_mask.proto";
+
+option csharp_namespace = "HealthyPlant.Grpc";
+
+package plants;
+
+service Data {
+	rpc GetData (GetDataRequest) returns (DataResponse);
+	rpc UpdateHistory (UpdateHistoryRequest) returns (UpdateHistoryResponse);
+	rpc UpdatePlant (UpdatePlantRequest) returns (UpdatePlantResponse);
+	rpc CreatePlant (CreatePlantRequest) returns (CreatePlantResponse);
+	rpc DeletePlant (DeletePlantRequest) returns (DeletePlantResponse);
+	rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse);
+	rpc UpdateUserToken (UpdateUserTokenRequest) returns (UpdateUserTokenResponse);
+}
+
+message DataResponse {
+	User user = 1;
+	ErrorCode error_code = 2;
+}
+
+message GetDataRequest {}
+
+message UpdateHistoryRequest {
+	History history = 1;
+}
+
+message UpdateHistoryResponse {
+	User user = 1;
+	ErrorCode error_code = 2;
+}
+
+message UpdatePlantRequest {
+	Plant plant = 1;
+}
+
+message UpdatePlantResponse {
+	User user = 1;
+	ErrorCode error_code = 2;
+}
+
+message CreatePlantRequest {
+	Plant plant = 1;
+}
+
+message CreatePlantResponse {
+	User user = 1;
+	ErrorCode error_code = 2;
+}
+
+message DeletePlantRequest {
+	string id = 1;
+}
+
+message DeletePlantResponse {
+	User user = 1;
+	ErrorCode error_code = 2;
+}
+
+message UpdateUserRequest {
+	google.protobuf.Duration notification_time = 1;
+	string date_format = 2;
+	string language = 3;
+	google.protobuf.Duration timezone = 4;
+
+	google.protobuf.FieldMask field_mask = 5;
+}
+
+message UpdateUserResponse {
+	User user = 1;
+	ErrorCode error_code = 2;
+}
+
+message UpdateUserTokenRequest {
+	string token = 1;
+}
+
+message UpdateUserTokenResponse {
+	ErrorCode error_code = 1;
+}
+
+enum ErrorCode {
+	NO_ERROR = 0;
+	DOCUMENT_NOT_FOUND = 1;
+	DUPLICATE = 2;
+	VALIDATION = 3;
+	USER_NOT_FOUND = 4;
+	WATERING_VALIDATION = 5;
+	FEEDING_VALIDATION = 6;
+	MISTING_VALIDATION = 7;
+	REPOTTING_VALIDATION = 8;
+	NAME_MAX_LENGTH = 9;
+	NAME_EMPTY = 10;
+	NOTES_MAX_LENGTH = 11;
+	ICON_REF_EMPTY = 12;
+	SERVER_ERROR = 500;
+}
+
+enum Periodicity {
+	PERIODICITY_NONE = 0;
+	EACH_DAY = 1;
+	TWO_DAYS = 2;
+	THREE_DAYS = 3;
+	FOUR_DAYS = 4;
+	FIVE_DAYS = 5;
+	SIX_DAYS = 6;
+	EACH_WEEK = 7;
+	TEN_DAYS = 10;
+	TWO_WEEKS = 14;
+	THREE_WEEKS = 21;
+	EACH_MONTH = 101;
+	SIX_MONTHS = 106;
+	EACH_YEAR = 1001;
+	TWO_YEARS = 1002;
+}
+
+enum HistoryType {
+	HISTORYTYPE_NONE= 0;
+	WATERING = 1;
+	FEEDING = 2;
+	MISTING = 3;
+	REPOTTING = 4;
+}
+
+message Plant {
+	string id = 1;
+	string name = 2;
+	string notes = 3;
+	string icon_ref = 4;
+	google.protobuf.Timestamp watering_start = 5;
+	Periodicity watering_days = 6;
+	google.protobuf.Timestamp feeding_start = 7;
+	Periodicity feeding_days = 8;
+	google.protobuf.Timestamp misting_start = 9;
+	Periodicity misting_days = 10;
+	google.protobuf.Timestamp repotting_start = 11;
+	Periodicity repotting_days = 12;
+	google.protobuf.Timestamp watering_next = 13;
+	google.protobuf.Timestamp feeding_next = 14;
+	google.protobuf.Timestamp misting_next = 15;
+	google.protobuf.Timestamp repotting_next = 16;
+	repeated History history = 17;
+}
+
+message User {
+	string id = 1;
+	string firebase_ref = 2;
+	string email = 3;
+	google.protobuf.Duration timezone = 4;
+	string date_format = 5;
+	repeated Plant plants = 6;
+	repeated HistoryGroup now_and_beyond = 7;
+	string language = 8;
+	google.protobuf.Duration notification_time = 9;
+}
+
+message History {
+	string id = 1;
+	bool is_done = 2;
+	google.protobuf.Timestamp date = 3;
+	HistoryType type = 4;
+	string plant_name= 5;
+	string plant_icon_ref = 6;
+	string plant_ref = 7;
+}
+
+message HistoryGroup {
+	google.protobuf.Timestamp date = 1;
+	repeated History watering_history = 2;
+	repeated History feeding_history = 3;
+	repeated History misting_history = 4;
+	repeated History repotting_history = 5;
+}
